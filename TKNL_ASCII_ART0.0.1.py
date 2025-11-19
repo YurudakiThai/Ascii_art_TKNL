@@ -363,7 +363,7 @@ if __name__ == "__main__":
             if (
                 (sys.argv[3][0].lower() ==
                  "y" or sys.argv[3][0].lower() == "n")
-                and (sys.argv[3][-1].lower() == "y" or sys.argv[3][-1].lower() == "n")
+                and (sys.argv[3][-1].lower() == "y" )
             )
             or (sys.argv[3].lower() == "yes" or sys.argv[3].lower() == "no")
             else "n"
