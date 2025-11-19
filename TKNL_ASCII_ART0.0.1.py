@@ -1,10 +1,8 @@
 import sys
 import numpy as np
 from PIL import Image, ImageOps
-from numpy._core.numeric import dot
 
 # ชุดตัวอักษร ASCII ที่ใช้แทนความเข้มของพิกเซล (จากเข้มไปอ่อน)
-"""
 Ascii_chars = [
     "󱗿",
     "󱗾",
@@ -22,10 +20,7 @@ Ascii_chars = [
     "₋",
     "˛",
 ][::-1]
-"""
 # ย้อนจากอ่อนไปเข้ม
-# Ascii_chars = ["⣿",chr(10487),chr(10486),"⢷","⡳",chr(10449),"⡴",chr(10468),chr(10436),"⢆","⢠","⢄","⣀","⡀"," ",][::-1]
-# Ascii_chars = ["⣿",".",".",".",".",".","⡙","⡁",".",".",".",".",".","."," "][::-1]
 
 
 def stucki_dither(image):
@@ -65,7 +60,7 @@ def resize_image(image_in, new_width=100):
     """ปรับขนาดภาพให้กว้างตามที่กำหนด โดยรักษาอัตราส่วน"""
     width, height = image_in.size
     # ปรับอัตราส่วนสำหรับ ASCII (เพราะตัวอักษรไม่เป็นสี่เหลี่ยมจตุรัส)
-    ratio = (height * 0.5) / width
+    ratio = (height * 1.618) / (width * 1.618)
     new_height = int(new_width * ratio)
     resized_image = image_in.resize((new_width, new_height))
     return resized_image
@@ -75,23 +70,25 @@ def pixels_to_ascii(image):
     """แปลงพิกเซลเป็นตัวอักษร ASCII ตามความเข้ม"""
     pixels = list(image.getdata())
 
-    matrix_pixels = list(map(lambda w: pixels[w : w + 2], range(0, len(pixels), 2)))
+    matrix_pixels = list(
+        map(lambda w: pixels[w: w + 2], range(0, len(pixels), 2)))
     print("width/2", len(matrix_pixels))
     matrix_pixels = [
         matrix_pixels[
-            round(image.width / 2) * i_ : round(image.width / 2)
+            round(image.width / 2) * i_: round(image.width / 2)
             + round(image.width / 2) * i_
         ]
         for i_ in range(0, round(image.height))
     ]
     print("width/4", len(matrix_pixels))
-    n_4d = round(image.height) if len(matrix_pixels) >= 4 else exit(Show_title())
+    n_4d = round(image.height) if len(
+        matrix_pixels) >= 4 else exit(Show_title())
     print("n_4d", n_4d)
     # list_num_toDot = [j_ for i_ in list_num_toDot for j_ in i_]
     fact_widt = round(image.width)
     list_num_toDot = []
     for h_D4 in range(round(len(matrix_pixels) / 4)):
-        h_D4bypart = matrix_pixels[4 * h_D4 : 4 + 4 * h_D4 :]
+        h_D4bypart = matrix_pixels[4 * h_D4: 4 + 4 * h_D4:]
         list_dot = [[1, 4], [2, 5], [3, 6], [7, 8]]
         for i_ in range(len(h_D4bypart)):
             h_D4bypart_i_ = h_D4bypart[i_]
@@ -111,15 +108,16 @@ def pixels_to_ascii(image):
     )
     list_num_toDot = [
         list_num_toDot[
-            round(image.width / 2) * i_ : round(image.width / 2)
+            round(image.width / 2) * i_: round(image.width / 2)
             + round(image.width / 2) * i_
         ]
         for i_ in range(0, round(image.height))
     ]
+    # ได้ชุดตัวเลขขนาด width*height
     print("list_num_toDot_2", len(list_num_toDot))
     list_num_toDot_2 = []
     for h_D4 in range(round(len(list_num_toDot) / 4)):
-        list_dot4 = list_num_toDot[4 * h_D4 : 4 + 4 * h_D4 :]
+        list_dot4 = list_num_toDot[4 * h_D4: 4 + 4 * h_D4:]
         for w_D2 in range(round(image.width / 2)):
             for i_ in list_dot4:
                 point_i = i_[w_D2]
@@ -127,7 +125,7 @@ def pixels_to_ascii(image):
     print("list_num_toDot_2", len(list_num_toDot_2))
     list_num_toDot_3 = []
     for list_point in range(round(len(list_num_toDot_2) / 4)):
-        list_By4 = list_num_toDot_2[4 * list_point : 4 + 4 * list_point :]
+        list_By4 = list_num_toDot_2[4 * list_point: 4 + 4 * list_point:]
         list_plus = []
         for i in list_By4:
             for j in i:
@@ -206,12 +204,16 @@ def pixels_to_ascii(image):
 
     # dot_result.append(braille_from_dots([*list_4dot[0],*list_4dot[1],*list_4dot[2],*list_4dot[3]]))
 
+    """
     ascii_str = "".join(
         list(
-            map(lambda x: Ascii_chars[int(x / (255 / (len(Ascii_chars) - 1)))], pixels)
+            map(lambda x: Ascii_chars[int(
+                x / (255 / (len(Ascii_chars) - 1)))], pixels)
         )
     )
-    ascii_str = "".join(list(map(lambda x: braille_from_dots(x), list_num_toDot_3)))
+    """
+    ascii_str = "".join(
+        list(map(lambda x: braille_from_dots(x), list_num_toDot_3)))
     return ascii_str
 
 
@@ -263,7 +265,7 @@ def main(
     ascii_img = "\n".join(
         list(
             map(
-                lambda i_: ascii_str[i_ : (i_ + round((image_.width / 2)))],
+                lambda i_: ascii_str[i_: (i_ + round((image_.width / 2)))],
                 list(range(0, len(ascii_str), round((image_.width / 2)))),
             )
         )
@@ -283,18 +285,20 @@ def main(
 
 
 def Show_title():
-    Head_text = ("TKNL_ASCII_ART V.0.0.1", "-->by Thanakrit Na-Lamphun [6804101333]")
+    Head_text = ("TKNL_ASCII_ART V.0.0.1",
+                 "-->by Thanakrit Na-Lamphun [6804101333]")
     HOW_text = (
         ">>วิธีการใช้งาน: python <file_path>/TKNL_ASCII_ART0.0.1.py <path_to_image_Ascii> [width] [invert(y/n or yes/no)] <path_out_image>",
         ">>ตัวอย่าง: python <file_path>/TKNL_ASCII_ART0.0.1.py Albert_Einstein.jpg 35 n Donwloads/ascii_text.txt",
         ">>ต่าเริ่มต้น [width] เป้น 100 px ทุกตัวอักขระ(Ascii)เท่ากับ 1 px จากนั้นจะนำาไปทำาอัตราส่วน",
         ">>ถ้าใส่ Input ไม่ถูกต้อง จะแสดงหน้านี้",
-        ">>ทุก <path_out_image> จะตามด้วย .txt เสมอ ถ้าไม่ใส่ต่ำาแหน่งไม่ถูกต้อง โปรแกรมจะบันทึกที่ต่ำาแหน่ง Downloads/ascii_text.txt เสมอ",
+        ">>ทุก <path_out_image> จะตามด้วย .txt เสมอ ถ้าไม่ใส่ต่ำาแหน่ง/ตำ่าแหน่งไม่ถูกต้อง โปรแกรมจะบันทึกที่ต่ำาแหน่ง Downloads/ascii_text.txt เสมอ",
     )
     print("=" * len(HOW_text[0]))
     # print(len(HOW_text[0]))
     print(
-        f"\n{' ' * int(0.5 * (len(HOW_text[0]) + 2 - len(Head_text[0])))}{Head_text[0]}"
+        f"\n{
+            ' ' * int(0.5 * (len(HOW_text[0]) + 2 - len(Head_text[0])))}{Head_text[0]}"
     )  # ช่อโปรเจค
     print(f"""
     {"╺┳╸╻┏ ┏┓╻╻     ┏━┓┏━┓┏━╸╻╻   ┏━┓┏━┓╺┳╸       ".center(len(HOW_text[0]))}
@@ -302,9 +306,11 @@ def Show_title():
     {"╹ ╹ ╹╹ ╹┗━╸╺━╸╹ ╹┗━┛┗━╸╹╹╺━╸╹ ╹╹┗╸ ╹ v.0.0.1".center(len(HOW_text[0]))}
     """)
 
-    print(f"{' ' * int(0.5 * (len(HOW_text[0]) - len(Head_text[1])))}{Head_text[1]}\n")
+    print(
+        f"{' ' * int(0.5 * (len(HOW_text[0]) - len(Head_text[1])))}{Head_text[1]}\n")
     print("=" * len(HOW_text[0]))
-    print(f"\n{' ' * int(0.5 * (len(HOW_text[0]) - len('How it WORK')))}How it WORK\n")
+    print(
+        f"\n{' ' * int(0.5 * (len(HOW_text[0]) - len('How it WORK')))}How it WORK\n")
     print(HOW_text[0])
     print(HOW_text[1])
     print(HOW_text[2])
@@ -312,31 +318,29 @@ def Show_title():
     print(HOW_text[4])
     print("""
 Example:
-₊₊₊₊₊₊₊⨪⨪₊₊⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪
-₊₊₊₊₊₊₊₊₊₊₊₊⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪⨪
-₊₊₊₊₊₊₊₊₊₊⨪⨪⨪⨪₌₌₌₊₊₊⨥⨥⨥⨥₊₌⨪⨪⨪₌₌⨪⨪₌₌
-₊₊₊₊₊₊₊₊₊⨪₌₊⨥⨢∹∹⨾∵∵∵󱗽󱗽󱗽󱗽∵⨢₌₌₌₌₌₌₌₌₌
-₊₊₊₊₊₊₊₊⨪₊⨾∵∵󱗽󱗽󱗽󱥸󱥸󱥸󱥸󱥸󱥸󱥸󱥸󱗽󱗽∵∹⨢₊₊₌₌₌₌
-₊₊₊₊₊₊⨪₊⨢⨾󱗽󱗽󱗽󱥸󱗽󱗽󱗽󱗽󱗽󱗽󱗽󱗽󱥸󱥸󱥸󱗽󱗽󱗽∵⨾⨥₊₌₌₌
-₊₊₊₊₊⨪⨢⨾⨾󱗽󱗽󱗽󱗽󱗽󱥸󱥸󱥸󱗽󱗽󱗽∵∵󱗽󱗽󱗽󱗽󱗽∵⨾⨾∹₊₌₌₌
-₊₊₊₊₌⨥⨾∵∵∵󱗽󱥸󱥸󱥸󱥸󱥸󱥸󱗽󱗽∵⨾⨢∹∵∵∵󱗽󱗽∵∵∹⨥₊₊₊
-₊₊₊₊⨢∹⨾∵∵∵󱗽󱥸󱥸󱥸󱥸󱥸󱥸󱗽⨾∹⨥₌⨢⨾∵∵∵∵∵∵⨾∹⨥⨥₊
-₊₊₌∹⨾⨾⨾⨾∵∵󱗽󱗽󱗽󱥸󱥸󱥸∵∹⨥⨥₊₌⨢⨾∹⨾∵∵∵⨾⨾⨾⨥⨥⨥
-₋₊⨥∹⨾∵∵⨾⨾∵⨢₊₊⨾󱗽⨥₊₊₌₊₌₌⨢⨾⨥⨢∹⨾∵∵∵∵∹⨢⨢
-₋⨪⨢⨢∹⨾∵⨾⨾∵∹⨢⨢󱗽⨾₌⨢⨢₊₊⨥₌⨪⨥₌⨪⨥⨾∵∵∵∵∹⨢⨢
-₋₊₊∹∹∹⨾∹⨢∹∵󱗽󱗽󱥸⨢⨪⨢⨾⨾⨾⨥⨪₊⨪₊₊₊⨾⨾⨾⨾∹⨢⨥⨥
-₋₊⨪₊∹⨾⨾∹⨢⨢∵󱗽⨾⨾₌₊₌∹⨾⨢₊₊₊₊⨪₌⨥∹⨾⨾∹⨥⨥⨥⨥
-₋₊₊₊₌⨢∹⨾⨾⨢⨾⨾∹⨥₌₌₊⨥⨥₌₌₊₋₋₊₊⨢⨢∹⨢⨢⨥⨥⨥₊
-₊₊₊₊₊⨪₌₌₊₌⨥⨢₌₌⨪₊₊₊⨪₊₊₋˛˛₋⨪⨢∹∹∹∹⨢⨢⨢⨢
-₋₊₋₋₋₊₊₊⨪₌₊⨥∹⨾∹⨥⨪₊₋₋₋˛˛˛˛₋₊⨢⨢⨢⨢∹∹⨢⨢
-₋₋₊₊₌₌₊₊⨥⨥₊₊₌₌₌₊₋₋˛˛˛˛˛˛₋₋₊₌⨢⨥₊₊⨥⨢⨢
-₊⨪₊₊⨥₊₌₊₌₌₌⨪₊₋₌₋˛˛˛˛˛₋₋₋₊₊₊⨪⨥⨢⨢⨥⨥⨥⨥
-₌₌₌₌₌⨪₌₌⨪⨪₊₊₊₊⨪₊₊₋₋₋₊₊₊₊₊₊⨪₌₊₊₊⨥⨢⨢⨥
-⨪⨪₌⨪₌₌₌⨪₊₊₊⨪⨪₊₊₊₊⨪⨪⨪₊₊₊⨪⨪₌₌₌₌₌₌₊₊₊⨢
-⨪⨪₌₌₌₌⨪⨪⨪⨪₊⨪⨪₊₊₊₊₊₊₊₊⨪⨪⨪₌₌₊⨪⨪⨪⨪⨪⨪₊₊
-⨪₌₌₌₌₌⨪⨪⨪₊₊₊⨪₊₋₊₊₊₊⨪⨪₌⨪₌⨪⨪⨪₊₊₊₊⨪⨪₊₊
-⨪⨪₌₌₌⨪⨪⨪₊₊₊⨪₊₋₊⨪⨪⨪⨪⨪⨪⨪⨪⨪₊₊₊₋₊⨪⨪⨪₊₋₋
-⨪⨪⨪⨪⨪₊⨪₊₊₊₊₊₋₊₊⨪⨪⨪⨪⨪⨪⨪⨪⨪₊₊₋₋⨪⨪₊₊₊₊₊
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢿⡿⣻⢻⡁⠀⢀⣄⣤⢴⠴⡴⣻⡻⣻⡻⣻⢭⢯⡻⣄⠦⠒⠉⠉⠉⡹⠀⢀⠈⠀⠄⠈⣿⢟⣿⡻⡿⣿
+⣿⣯⢿⡽⣯⢿⡽⣯⣷⡻⣮⢟⣞⢗⡵⡀⣜⢍⡢⡲⣡⢫⠺⣬⡻⣼⣝⢷⣫⣞⢽⣪⡻⡕⢶⡄⠀⡽⠀⠀⡀⠐⠀⠀⣿⣝⣮⡻⣺⣻
+⣿⡯⣿⡽⣯⣟⣿⣳⣽⣯⣻⡽⣝⣗⢕⠮⡪⣞⢽⣝⢷⣝⣽⢮⣻⢞⣮⣟⢮⡯⣳⠵⣝⢝⡵⣕⠀⢾⠀⠀⡀⠀⠐⠀⣿⢮⣞⣝⢷⣻
+⣿⣟⡷⣿⢯⣿⣞⡿⣾⢞⣷⢽⡷⣝⣎⡳⣹⢮⣳⣝⢷⣫⣾⣫⣯⡻⣮⢷⡻⣞⣵⢳⡱⣑⠎⢮⠀⣳⠀⢀⠀⠈⠀⠀⣿⣳⢽⡮⣿⣽
+⣿⣯⢿⣯⢿⡾⣽⢿⣽⢯⣟⣷⣻⣞⣜⢾⡵⣻⡵⣏⢿⡵⣳⢗⡷⣻⡺⣳⣝⢷⣝⢯⡷⣵⣫⢮⠀⣽⠀⠠⠀⠁⠈⠀⣿⣳⣟⢾⡵⣿
+⣿⣟⣯⣟⣿⣻⣟⣯⣿⡽⣗⣿⣺⢞⣮⢷⡻⣵⣫⢏⣷⣝⢷⡽⣝⣮⣻⢮⣞⡵⡝⢷⢝⡷⣻⣗⢀⡿⣀⡴⠤⠵⠢⠊⣿⡵⣯⣗⣟⣿
+⣿⣿⣽⣯⣿⡽⠯⠛⠚⠙⠋⠓⠙⠛⠚⠛⠳⠷⠯⠿⢮⡿⣝⣯⡿⣵⣯⣻⢮⡿⣽⢷⢷⣳⣵⣽⣥⣯⣄⣠⣀⣀⣀⠐⣿⡻⡾⣮⢯⣿
+⣿⣿⣾⡷⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠁⠉⠉⠉⠉⠉⠉⠋⠊⠑⠉⠈⠉⠉⠉⠁⠈⠀⠈⠉⠙⣷⣟⣿
+⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⢾⣟⢾⣿
+⣿⣿⣷⣿⣿⣶⣶⣦⣤⣤⣄⣄⣀⡀⠀⡢⠈⠐⡀⠑⠄⠱⡐⠅⡆⢔⠰⡀⠂⠀⡀⠀⡀⠈⡢⡃⠀⢰⡖⠐⠄⠂⠄⢐⣿⣯⢿⡽⣯⣿
+⣿⣿⣾⣯⣿⢿⣿⣿⣿⣿⣿⣿⣿⣇⠠⢪⠂⡠⠴⠤⠀⠀⡀⠀⣹⢮⢀⠄⠠⢀⠐⠰⢄⡈⣵⡫⢀⣼⡏⡜⣈⢊⠐⢠⣿⣽⢿⡽⣯⣿
+⣿⣿⣾⢷⣿⢿⣯⣿⣽⣯⣿⣽⣟⣿⡄⢱⢝⣤⡰⠢⢜⠣⡔⢆⢜⣷⡑⡮⣜⣱⡪⣷⢴⣝⣮⡃⢠⣿⣧⣮⣴⣤⢧⠴⣿⣯⣿⠙⣯⣿
+⣿⣿⣽⣟⣿⣻⣟⣷⣿⣻⣾⣯⣿⣻⣦⠘⡵⡳⣻⣟⣯⢷⣝⢧⡹⣯⡎⢿⢮⣽⣽⣯⢿⢾⣵⡅⠊⣿⡄⠀⠄⠄⠄⠰⣿⡾⣿⡁⣿⣿
+⣿⣿⣽⣯⣿⣻⣯⣿⣽⣟⣷⡿⣾⢿⣽⡧⢙⢎⢷⣽⢾⣟⢮⣗⢽⡾⣟⣽⣫⡿⣾⡷⣻⡳⣇⠀⠀⣿⡆⠀⠌⡐⠀⠨⣿⣻⣿⠄⣿⣿
+⣿⣿⢷⣿⣽⣿⣽⣯⣿⣽⣟⣿⣻⣟⣷⡟⣰⠡⡳⣝⢯⣪⡎⠛⠚⢟⠿⠊⣵⡝⣯⢟⣝⢞⡇⠀⠀⣿⡆⠈⠀⠀⠈⠐⣿⣯⣿⣻⣟⣿
+⣿⣿⢿⡷⣿⣾⣯⣿⢷⣿⣯⡿⣿⣽⣯⡗⢸⡫⣞⢜⡶⣻⢽⡳⣆⢀⢰⢞⡽⣻⣜⢯⣞⢯⠃⠀⠠⣿⡅⠀⢀⠈⠀⢈⣿⣷⣻⡷⣻⣿
+⣿⣿⣿⣻⣿⡾⣷⡿⣿⢷⣿⣻⡿⣾⣯⡯⠤⢏⡞⣯⢢⣤⣑⣑⣉⡙⢑⣯⣪⣤⣹⡳⣝⡇⢄⠁⠠⣿⡅⠐⠀⠄⠀⠠⣿⣯⣷⣟⡿⣿
+⣿⣿⣽⣟⣷⣿⣿⣻⣿⣻⣯⣿⣻⡿⣾⣗⢰⡔⠑⢭⣟⣽⣭⣍⠋⠛⡉⢙⣿⣿⣪⠗⣜⣿⠀⡓⣠⣿⣃⣠⣠⣠⣠⣠⣿⡾⣷⣽⣻⣿
+⣿⣿⣽⣯⣿⣾⣯⣿⣽⣿⣽⣯⡿⣿⣽⡧⠊⠀⠀⣮⢘⢗⠿⡾⡿⡿⡿⢷⠪⢿⣷⣝⢾⣿⠁⡢⢀⠛⠿⢟⣿⢯⣟⢷⣯⢿⣞⡷⣻⣾
+⣿⣿⢿⣾⣷⢿⣾⣟⣷⣿⢾⠯⡟⢛⡔⡑⠀⢠⢒⣿⣧⡳⢱⡈⠊⢈⢈⠢⠲⣢⣯⣻⣿⡯⢐⠄⡑⠌⡢⠠⡀⢉⠙⠹⠾⢯⣯⣟⣽⣿
+⣿⣿⣿⠷⠿⠛⡉⡉⠔⡀⠢⠢⡁⠧⠈⠔⢀⢯⣟⣽⡿⣿⣦⡌⡈⢂⢅⣱⣵⣿⣿⣽⡷⢁⠔⡡⢈⠢⡘⠢⠐⡈⠌⢂⠐⡀⢄⠈⡌⢙
+⡟⢉⠔⡠⠃⡐⡈⠠⢂⠌⠢⡁⡊⠄⠃⠄⣨⣿⣻⣞⡿⣿⣻⡿⢓⢴⣿⣿⣻⡿⣾⣯⠁⢢⢑⠠⠊⠔⡈⢈⠢⠀⡑⠀⡅⠐⠠⠑⠠⢃
+⡕⢡⢊⠐⠄⠢⡠⡁⠢⡐⠡⠄⣈⠐⡁⠠⣾⣯⣿⣽⣿⣽⡟⢨⡇⡣⢹⣿⣽⣿⣻⡇⠈⡢⢀⠡⠊⠐⠌⡀⠢⡁⡈⠠⠀⠌⡀⠡⠁⡌
         """)
 
 
