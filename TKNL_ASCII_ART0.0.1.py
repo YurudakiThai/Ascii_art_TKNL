@@ -70,25 +70,23 @@ def pixels_to_ascii(image):
     """แปลงพิกเซลเป็นตัวอักษร ASCII ตามความเข้ม"""
     pixels = list(image.getdata())
 
-    matrix_pixels = list(
-        map(lambda w: pixels[w: w + 2], range(0, len(pixels), 2)))
+    matrix_pixels = list(map(lambda w: pixels[w : w + 2], range(0, len(pixels), 2)))
     print("width/2", len(matrix_pixels))
     matrix_pixels = [
         matrix_pixels[
-            round(image.width / 2) * i_: round(image.width / 2)
+            round(image.width / 2) * i_ : round(image.width / 2)
             + round(image.width / 2) * i_
         ]
         for i_ in range(0, round(image.height))
     ]
     print("width/4", len(matrix_pixels))
-    n_4d = round(image.height) if len(
-        matrix_pixels) >= 4 else exit(Show_title())
+    n_4d = round(image.height) if len(matrix_pixels) >= 4 else exit(Show_title())
     print("n_4d", n_4d)
     # list_num_toDot = [j_ for i_ in list_num_toDot for j_ in i_]
     fact_widt = round(image.width)
     list_num_toDot = []
     for h_D4 in range(round(len(matrix_pixels) / 4)):
-        h_D4bypart = matrix_pixels[4 * h_D4: 4 + 4 * h_D4:]
+        h_D4bypart = matrix_pixels[4 * h_D4 : 4 + 4 * h_D4 :]
         list_dot = [[1, 4], [2, 5], [3, 6], [7, 8]]
         for i_ in range(len(h_D4bypart)):
             h_D4bypart_i_ = h_D4bypart[i_]
@@ -108,7 +106,7 @@ def pixels_to_ascii(image):
     )
     list_num_toDot = [
         list_num_toDot[
-            round(image.width / 2) * i_: round(image.width / 2)
+            round(image.width / 2) * i_ : round(image.width / 2)
             + round(image.width / 2) * i_
         ]
         for i_ in range(0, round(image.height))
@@ -117,7 +115,7 @@ def pixels_to_ascii(image):
     print("list_num_toDot_2", len(list_num_toDot))
     list_num_toDot_2 = []
     for h_D4 in range(round(len(list_num_toDot) / 4)):
-        list_dot4 = list_num_toDot[4 * h_D4: 4 + 4 * h_D4:]
+        list_dot4 = list_num_toDot[4 * h_D4 : 4 + 4 * h_D4 :]
         for w_D2 in range(round(image.width / 2)):
             for i_ in list_dot4:
                 point_i = i_[w_D2]
@@ -125,7 +123,7 @@ def pixels_to_ascii(image):
     print("list_num_toDot_2", len(list_num_toDot_2))
     list_num_toDot_3 = []
     for list_point in range(round(len(list_num_toDot_2) / 4)):
-        list_By4 = list_num_toDot_2[4 * list_point: 4 + 4 * list_point:]
+        list_By4 = list_num_toDot_2[4 * list_point : 4 + 4 * list_point :]
         list_plus = []
         for i in list_By4:
             for j in i:
@@ -212,8 +210,7 @@ def pixels_to_ascii(image):
         )
     )
     """
-    ascii_str = "".join(
-        list(map(lambda x: braille_from_dots(x), list_num_toDot_3)))
+    ascii_str = "".join(list(map(lambda x: braille_from_dots(x), list_num_toDot_3)))
     return ascii_str
 
 
@@ -265,7 +262,7 @@ def main(
     ascii_img = "\n".join(
         list(
             map(
-                lambda i_: ascii_str[i_: (i_ + round((image_.width / 2)))],
+                lambda i_: ascii_str[i_ : (i_ + round((image_.width / 2)))],
                 list(range(0, len(ascii_str), round((image_.width / 2)))),
             )
         )
@@ -285,8 +282,7 @@ def main(
 
 
 def Show_title():
-    Head_text = ("TKNL_ASCII_ART V.0.0.1",
-                 "-->by Thanakrit Na-Lamphun [6804101333]")
+    Head_text = ("TKNL_ASCII_ART V.0.0.1", "-->by Thanakrit Na-Lamphun [6804101333]")
     HOW_text = (
         ">>วิธีการใช้งาน: python <file_path>/TKNL_ASCII_ART0.0.1.py <path_to_image_Ascii> [width] [invert(y/n or yes/no)] <path_out_image>",
         ">>ตัวอย่าง: python <file_path>/TKNL_ASCII_ART0.0.1.py Albert_Einstein.jpg 35 n Donwloads/ascii_text.txt",
@@ -297,8 +293,7 @@ def Show_title():
     print("=" * len(HOW_text[0]))
     # print(len(HOW_text[0]))
     print(
-        f"\n{
-            ' ' * int(0.5 * (len(HOW_text[0]) + 2 - len(Head_text[0])))}{Head_text[0]}"
+        f"\n{' ' * int(0.5 * (len(HOW_text[0]) + 2 - len(Head_text[0])))}{Head_text[0]}"
     )  # ช่อโปรเจค
     print(f"""
     {"╺┳╸╻┏ ┏┓╻╻     ┏━┓┏━┓┏━╸╻╻   ┏━┓┏━┓╺┳╸       ".center(len(HOW_text[0]))}
@@ -306,11 +301,9 @@ def Show_title():
     {"╹ ╹ ╹╹ ╹┗━╸╺━╸╹ ╹┗━┛┗━╸╹╹╺━╸╹ ╹╹┗╸ ╹ v.0.0.1".center(len(HOW_text[0]))}
     """)
 
-    print(
-        f"{' ' * int(0.5 * (len(HOW_text[0]) - len(Head_text[1])))}{Head_text[1]}\n")
+    print(f"{' ' * int(0.5 * (len(HOW_text[0]) - len(Head_text[1])))}{Head_text[1]}\n")
     print("=" * len(HOW_text[0]))
-    print(
-        f"\n{' ' * int(0.5 * (len(HOW_text[0]) - len('How it WORK')))}How it WORK\n")
+    print(f"\n{' ' * int(0.5 * (len(HOW_text[0]) - len('How it WORK')))}How it WORK\n")
     print(HOW_text[0])
     print(HOW_text[1])
     print(HOW_text[2])
@@ -361,9 +354,8 @@ if __name__ == "__main__":
         invert_YN = (
             sys.argv[3][0]
             if (
-                (sys.argv[3][0].lower() ==
-                 "y" or sys.argv[3][0].lower() == "n")
-                and (sys.argv[3][-1].lower() == "y" )
+                (sys.argv[3][0].lower() == "y" or sys.argv[3][0].lower() == "n")
+                and (sys.argv[3][-1].lower() == "y" or sys.argv[3][-1].lower() == "n")
             )
             or (sys.argv[3].lower() == "yes" or sys.argv[3].lower() == "no")
             else "n"
