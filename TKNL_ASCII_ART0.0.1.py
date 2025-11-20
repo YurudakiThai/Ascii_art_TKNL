@@ -282,7 +282,7 @@ def main(
 
 
 def Show_title():
-    Head_text = ("TKNL_ASCII_ART V.0.0.1", "-->by Thanakrit Na-Lamphun [6804101333]")
+    Head_text = ("TKNL_ASCII_ART V.0.1.0", "-->by Thanakrit Na-Lamphun [6804101333]")
     HOW_text = (
         ">>วิธีการใช้งาน: python <file_path>/TKNL_ASCII_ART0.0.1.py <path_to_image_Ascii> [width] [invert(y/n or yes/no)] <path_out_image>",
         ">>ตัวอย่าง: python <file_path>/TKNL_ASCII_ART0.0.1.py Albert_Einstein.jpg 35 n Donwloads/ascii_text.txt",
