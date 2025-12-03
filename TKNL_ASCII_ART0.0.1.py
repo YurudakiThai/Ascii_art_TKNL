@@ -134,16 +134,6 @@ def pixels_to_ascii(image):
                 list_plus.append(j)
         list_num_toDot_3.append(list_plus)
 
-    """
-    if i_ == 255 and i_== 0:
-    list_num_toDot.append([list_dot[h_D4_1][0]])
-    elif dot_point[0] == 0 and dot_point[h_D4_1] ==255:
-    list_num_toDot.append([list_dot[point_i][1]])
-    elif dot_point[0] == 0 and dot_point[h_D4_1] == 0:
-    list_num_toDot.append([])
-    else:
-        list_num_toDot.append(list_dot[point_i])
-    """
 
     # print(point_i) #list_B = [ k for k in list_A ]
     # print("--",point_i ,len(list_B))
