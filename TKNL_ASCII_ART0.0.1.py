@@ -88,6 +88,7 @@ def pixels_to_ascii(image):
     print("n_4d", n_4d)
     # list_num_toDot = [j_ for i_ in list_num_toDot for j_ in i_]
     fact_widt = round(image.width)
+    """จัดเรียงครั้ง 1"""
     list_num_toDot = []
     for h_D4 in range(round(len(matrix_pixels) / 4)):
         h_D4bypart = matrix_pixels[4 * h_D4: 4 + 4 * h_D4:]
@@ -118,6 +119,7 @@ def pixels_to_ascii(image):
     # ได้ชุดตัวเลขขนาด width*height
     print("list_num_toDot_2", len(list_num_toDot))
     list_num_toDot_2 =[]
+    """จัดเรียงครั้ง 2"""
     for h_D4 in range(round(len(list_num_toDot) / 4)):
         list_dot4 = list_num_toDot[4 * h_D4: 4 + 4 * h_D4:]
         for w_D2 in range(round(image.width / 2)):
@@ -125,6 +127,7 @@ def pixels_to_ascii(image):
                 point_i = i_[w_D2]
                 list_num_toDot_2.append(point_i)
     print("list_num_toDot_2", len(list_num_toDot_2))
+    """จัดเรียงครั้ง 3"""
     list_num_toDot_3 = []
     for list_point in range(round(len(list_num_toDot_2) / 4)):
         list_By4 = list_num_toDot_2[4 * list_point: 4 + 4 * list_point:]
