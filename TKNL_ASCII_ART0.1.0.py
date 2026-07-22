@@ -50,53 +50,7 @@ def resize_image(image_in, new_width=100):
     return resized_image
 
 
-def pixels_to_ascii_numpy(image):
-    pixels_image = np.array(image.getdata())
-    pixels_image = pixels_image // 255  # ทำาให้เป็น 0 1
 
-    """
-    เช็คว่า image data เป็นสีเหลี่ยมใหม่ ถ้าไม่ให้เพิ่ม 0 เข้าไปจนเต็ม สีเหลี่ยม
-    """
-    print("weight mod", (len(pixels_image) / 8) % (image.width / 2))
-    print("height mod", (len(pixels_image) / 8) % (image.height / 4))
-    print(len(pixels_image))
-    if image.height % 4 != 0:
-        pad_h = (4 - (image.height % 4)) % 4
-    else:
-        pad_h = image.height % 4
-    if image.width % 2 != 0:
-        pad_w = 2 - (image.width % 2) % 2
-    else:
-        pad_w = image.width % 2
-
-    print(image.width / 2, "mod = ", pad_h)
-    print(image.height / 4, "mod = ", pad_w)
-    pixels_image = pixels_image.reshape(image.height, image.width)
-    pixels_image = np.pad(
-        pixels_image, ((0, pad_h), (0, pad_w)), mode="constant", constant_values=0
-    )
-    # print(pixels_image)
-    new_row, new_colum = pixels_image.shape
-    """
-    ค่าของ (1<<0) ถึง (1<<7) เพื่อนำาไป Produc กับ finally_array_pixImage ทุก 4 แถวใหม่ และทุก 2 คอลัมบ์ใหม่
-    โดย i เป็นแถว ที่ image.height/4 และ j เป็น columm ที่ image.weight/2
-    """
-
-    print(len(pixels_image), len(pixels_image[-1]))
-
-    list_dot = np.array([[1, 2], [4, 8], [16, 32], [64, 128]])
-    Blocks_sup = pixels_image.reshape(new_row // 4, 4, new_colum // 2, 2)
-    Blocks_transport_sup = Blocks_sup.transpose(0, 2, 1, 3)
-    result = (Blocks_transport_sup * list_dot).sum(axis=(2, 3))
-    result = result + 0x2800
-
-    # print(result.tolist())
-    list_chrBrilln = [chr(j) for i_ in result.tolist() for j in i_]
-    # print(finally_array_pixImage[-4:, -2:] * list_dot)
-    # print(chr((finally_array_pixImage[-4:, -2:] * list_dot).sum() + 0x2800)) # algorithm
-    # print(result)
-
-    return "".join(list_chrBrilln)
 
 
 # อันนี้ประสิทธิภาพมากที่สุด
