@@ -41,9 +41,9 @@ def stucki_dither(image):
 
 
 def resize_image(image_in, new_width=100):
-    """ปรับขนาดภาพให้กว้างตามที่กำหนด โดยรักษาอัตราส่วน"""
+    """ปรับขนาดภาพให้กว้างตามที่กําหนด โดยรักษาอัตราส่วน"""
     width, height = image_in.size
-    # ปรับอัตราส่วนสำหรับ ASCII (เพราะตัวอักษรไม่เป็นสี่เหลี่ยมจตุรัส)
+    # ปรับอัตราส่วนสําหรับ ASCII (เพราะตัวอักษรไม่เป็นสี่เหลี่ยมจตุรัส)
     ratio = (height) / (width)
     new_height = int(new_width * ratio)
     resized_image = image_in.resize((new_width, new_height))
@@ -188,7 +188,7 @@ def pixels_to_ascii_dot(image):
 
     ascii_str_dots = "".join(
         list(map(lambda dot_1: chr(10240 + dot_1), pixels_image))
-    )  # [::-1] ทำาให้กลับหัว
+    )  # [::-1] ทําาให้กลับหัว
     return ascii_str_dots
 
 
@@ -221,7 +221,7 @@ def main(
         image_ = invert_RGBorRGBA(image_)
     # แปลงภาพ
     image_ = resize_image(image_, output_width)
-    image_ = image_.convert("L")  # เปลี่ยนภาพเป็นขาวดำา
+    image_ = image_.convert("L")  # เปลี่ยนภาพเป็นขาวดําา
     image_ = stucki_dither(image_)
 
     # แปลงเป็น ASCII
@@ -240,7 +240,7 @@ def main(
     # แสดงผล
     Text_re = "RESULT (ผลลัพธ์)\n"
     print("=" * output_width + "\n")
-    print(Text_re.center(output_width))  # ทำาให้ข้อความอยู่ตรงกลาง
+    print(Text_re.center(output_width))  # ทําาให้ข้อความอยู่ตรงกลาง
     print("=" * output_width + "\n")
     print((ascii_img))
 
@@ -258,9 +258,9 @@ def Show_title():
     HOW_text = (
         ">>วิธีการใช้งาน: python <file_path>/TKNL_ASCII_ART0.0.1.py <path_to_image_Ascii> [width] [invert(y/n or yes/no)] <path_out_image>",
         ">>ตัวอย่าง: python <file_path>/TKNL_ASCII_ART0.0.1.py Albert_Einstein.jpg 35 n Donwloads/ascii_text.txt",
-        ">>ต่าเริ่มต้น [width] เป้น 100 px ทุกตัวอักขระ(Ascii)เท่ากับ 1 px จากนั้นจะนำาไปทำาอัตราส่วน",
+        ">>ต่าเริ่มต้น [width] เป้น 100 px ทุกตัวอักขระ(Ascii)เท่ากับ 1 px จากนั้นจะนําาไปทําาอัตราส่วน",
         ">>ถ้าใส่ Input ไม่ถูกต้อง จะแสดงหน้านี้",
-        ">>ทุก <path_out_image> จะตามด้วย .txt เสมอ ถ้าไม่ใส่ต่ำาแหน่ง/ตำ่าแหน่งไม่ถูกต้อง โปรแกรมจะบันทึกที่ต่ำาแหน่ง Downloads/ascii_text.txt เสมอ",
+        ">>ทุก <path_out_image> จะตามด้วย .txt เสมอ ถ้าไม่ใส่ต่ําาแหน่ง/ตํา่าแหน่งไม่ถูกต้อง โปรแกรมจะบันทึกที่ต่ําาแหน่ง Downloads/ascii_text.txt เสมอ",
     )
     print("=" * len(HOW_text[0]))
     # print(len(HOW_text[0]))
@@ -353,7 +353,7 @@ if __name__ == "__main__":
 
         main(image_path_in, width, invert_YN, image_path_out)
     # except IndexError as Error:
-    # print(f"{Error}เกิดข้อผิดพลาดเนื้องจาก Input ไม่ตรงกับการทำางานกำาหนด")
+    # print(f"{Error}เกิดข้อผิดพลาดเนื้องจาก Input ไม่ตรงกับการทําางานกําาหนด")
     # Show_title()
     except Exception as E:
         # print(f"Error: {type(E).__name__}, Message: {str(E)}")
