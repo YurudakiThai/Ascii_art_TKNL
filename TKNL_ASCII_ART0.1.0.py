@@ -110,7 +110,7 @@ def pixels_to_ascii(image):
         list_dot4 = list_num_toDot[4 * h_D4 : 4 + 4 * h_D4 :]
         for w_D2 in range(round(image.width / 2)):
             for i_ in list_dot4:
-                # point_i = i_[w_D2]
+                #point_i = i_[w_D2]
                 list_num_toDot_2.append(i_[w_D2])
     print("list_num_toDot_2", len(list_num_toDot_2))
     """จัดเรียงครั้ง 3"""
@@ -122,18 +122,7 @@ def pixels_to_ascii(image):
             list_plus.extend(i)
         list_num_toDot_3.append(list_plus)
 
-    print(len(list_num_toDot))
-    """
-    for w_ in range(round(len(list_num_toDot)/4)):
-        list_4dot = list_num_toDot[4*w_:4+(4)*w_:]
-        list_4dot = [ j for i in list_4dot for j in i]
-        list_num_toDot_2.append(list_4dot)
-        print()
-    """
-
-    print(len(list_num_toDot_2))
-
-    def braille_from_dots(dot_list):
+   def braille_from_dots(dot_list):
         base = 0x2800  # จุดเริ่มต้นของ Braille Patterns
         value = 0
         for dot in dot_list:
@@ -141,26 +130,7 @@ def pixels_to_ascii(image):
                 value |= 1 << (dot - 1)
         return chr(base + value)
 
-    """
-    dot_result = []
 
-    for k_ in range(round(len(dot_list_part)/4)):
-        list_4dot  = dot_list_part[4*k_:4+4*k_:]
-        list_4dot = [j_ for i_ in list_4dot for j_ in i_]
-        dot_result.append(list_4dot)
-    print(len(dot_result))
-    """
-
-    # dot_result.append(braille_from_dots([*list_4dot[0],*list_4dot[1],*list_4dot[2],*list_4dot[3]]))
-
-    """
-    ascii_str = "".join(
-        list(
-            map(lambda x: Ascii_chars[int(
-                x / (255 / (len(Ascii_chars) - 1)))], pixels)
-        )
-    )
-    """
     ascii_str = "".join(list(map(lambda x: braille_from_dots(x), list_num_toDot_3)))
     return ascii_str
 
@@ -187,7 +157,7 @@ def main(
     image_path_in: str,
     output_width=100,
     invert_yn: str = "n",
-    image_path_OUT: str = "Downloads/ascii_image.txt",
+    image_path_OUT: str = "~/Downloads/ascii_image.txt",
 ):  # Defuilt ไว้ 100 px
     try:
         # เปิดภาพ
@@ -335,7 +305,6 @@ if __name__ == "__main__":
 
         main(image_path_in, width, invert_YN, image_path_out)
     # except IndexError as Error:
-    # print(f"{Error}เกิดข้อผิดพลาดเนื้องจาก Input ไม่ตรงกับการทําางานกําาหนด")
     # Show_title()
     except Exception as E:
         # print(f"Error: {type(E).__name__}, Message: {str(E)}")
