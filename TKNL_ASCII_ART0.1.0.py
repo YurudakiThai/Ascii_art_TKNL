@@ -122,24 +122,6 @@ def pixels_to_ascii(image):
             list_plus.extend(i)
         list_num_toDot_3.append(list_plus)
 
-    # print(point_i) #list_B = [ k for k in list_A ]
-    # print("--",point_i ,len(list_B))
-    # list_num_toDot = list(map(lambda x: list_num_toDot[x:x+2],range(0,len(list_num_toDot),2)))
-
-    # print("list_dot--",(list_num_toDot))
-    # list_num_toDot = list(map(lambda k: list_num_toDot[round(image.width)*k:round(image.width)+round(image.width)*k:] ,list(range(image.height))))
-    # list_num_toDot_beta = [i_[1] for i_ in list_num_toDot]
-    # list_partternStack = list_partternStack*2
-    # list_partternStack = list_partternStack [:len(list_partternStack):]
-    # print(len(list_partternStack))
-    # i_ = round(len(list_partternStack)/((image.width/4)))-1
-    # dot_list_part = [list_partternStack[round(image.width/4)*i_1:round(image.width/4)+round(image.width/4)*i_1:][i_point][1] for i_point in range(fact_widthD4) for i_1 in range(i_)]
-    # for i_point in range(fact_widthD4):
-    # for i_1 in range(i_):
-    # print(list_partternStack[round(image.width/4)*i_1:round(image.width/4)+round(image.width/4)*i_1:][i_point])
-
-    # print(len(dot_list_part))
-
     print(len(list_num_toDot))
     """
     for w_ in range(round(len(list_num_toDot)/4)):
