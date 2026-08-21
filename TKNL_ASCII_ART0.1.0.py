@@ -122,6 +122,13 @@ def pixels_to_ascii(image):
             list_plus.extend(i)
         list_num_toDot_3.append(list_plus)
 
+    def braille_from_dots(dot_list) :
+        base = 0x2800  # จุดเริ่มต้นของ Braille Patterns
+        value = 0
+        for dot in dot_list:
+            if 1 <= dot <= 8:
+                value |= 1 << (dot - 1)
+        return chr(base + value)
 
 
     ascii_str = "".join(list(map(lambda x: braille_from_dots(x), list_num_toDot_3)))
@@ -305,7 +312,7 @@ if __name__ == "__main__":
         # print("\n" + f"Please Try Again.".center(129, "!") + "\n")
         # print(f"{E}".center(129))
         # Show_title()
-        print(e)
+        print(E)
     """
     except ValueError as E:
         print("\n" + f"YOU HAVE PUT THE COMMAND INCORRECTLY.".center(129, "!") + "\n")
