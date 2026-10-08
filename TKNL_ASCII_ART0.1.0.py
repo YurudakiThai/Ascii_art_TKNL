@@ -2,15 +2,11 @@ from PIL import Image, ImageOps
 import sys
 import numpy as np
 
-# ชุดตัวอักษร ASCII ที่ใช้แทนความเข้มของพิกเซล (จากเข้มไปอ่อน)
-Ascii_chars = []
-# ย้อนจากอ่อนไปเข้ม
-
-
 def stucki_dither(image):
+    """Optimized Stucki dithering"""
     arr = np.array(image.convert("L"), dtype=np.float32)
-    h, w = image.height, image.width
-    print(w, h)
+    h, w = arr.shape
+
     weights = [
         (1, 0, 8),
         (2, 0, 4),
@@ -25,63 +21,66 @@ def stucki_dither(image):
         (1, 2, 2),
         (2, 2, 1),
     ]
+    total_weight = 42
 
     for y in range(h):
         for x in range(w):
             old = arr[y, x]
             new = 0 if old < 80 else 255
-            # new = old
             arr[y, x] = new
             err = old - new
             for dx, dy, weight in weights:
                 nx, ny = x + dx, y + dy
                 if 0 <= nx < w and 0 <= ny < h:
-                    arr[ny, nx] += err * weight / 42
+                    arr[ny, nx] += err * weight / total_weight
+
     return Image.fromarray(np.clip(arr, 0, 255).astype("uint8"))
 
-
 def resize_image(image_in, new_width=100):
-    """ปรับขนาดภาพให้กว้างตามที่กําหนด โดยรักษาอัตราส่วน"""
+    """Resize image maintaining aspect ratio"""
     width, height = image_in.size
-    # ปรับอัตราส่วนสําหรับ ASCII (เพราะตัวอักษรไม่เป็นสี่เหลี่ยมจตุรัส)
-    ratio = (height) / (width)
+    ratio = height / width
     new_height = int(new_width * ratio)
-    resized_image = image_in.resize((new_width, new_height))
-    return resized_image
+    return image_in.resize((new_width, new_height), Image.LANCZOS)
 
+def braille_from_dots(dot_list):
+    """Convert list of dot positions to Braille character"""
+    base = 0x2800
+    value = 0
+    for dot in dot_list:
+        if 1 <= dot <= 8:
+            value |= 1 << (dot - 1)
+    return chr(base + value)
 
-
-
-
-# อันนี้ประสิทธิภาพมากที่สุด
 def pixels_to_ascii(image):
-    # แปลงพิกเซลเป็นตัวอักษร ASCII ตามความเข้ม
-    pixels = list(image.getdata())
-    print("pixels's len", len(pixels))
+    """Convert image to ASCII using Braille characters - Optimized version"""
+    pixels = list(image.get_flattened_data())
 
-    matrix_pixels = list(map(lambda w: pixels[w : w + 2], range(0, len(pixels), 2)))
-    print("width/2", len(matrix_pixels))
+    # Group pixels into pairs (2 pixels per group)
     matrix_pixels = [
-        matrix_pixels[
-            round(image.width / 2) * i_ : round(image.width / 2)
-            + round(image.width / 2) * i_
-        ]
+        pixels[w : w + 2]
+        for w in range(0, len(pixels), 2)
+    ]
+
+    # Reshape into 2D matrix (height x width/2)
+    matrix_pixels = [
+        matrix_pixels[round(image.width / 2) * i_ : round(image.width / 2) + round(image.width / 2) * i_]
         for i_ in range(0, image.height)
     ]
-    matrix_pixels[-1] = matrix_pixels[-1] + [[0, 0]] * (
-        len(matrix_pixels[-2]) - len(matrix_pixels[-1])
-    )
-    print("width/4", len(matrix_pixels))
-    n_4d = round(image.height) if len(matrix_pixels) >= 4 else exit(Show_title())
-    print("n_4d", n_4d)
-    # list_num_toDot = [j_ for i_ in list_num_toDot for j_ in i_]
-    fact_widt = round(image.width)
-    """จัดเรียงครั้ง 1"""
 
-    list_num_toDot = []
+    # Pad last row if needed
+    if len(matrix_pixels) > 1:
+        matrix_pixels[-1] = matrix_pixels[-1] + [[0, 0]] * (
+            len(matrix_pixels[-2]) - len(matrix_pixels[-1])
+        )
+
+    # Braille dot mapping: [[1, 4], [2, 5], [3, 6], [7, 8]]
     list_dot = [[1, 4], [2, 5], [3, 6], [7, 8]]
+    list_num_toDot = []
+
+    # Process in 4-row blocks
     for h_D4 in range(round(len(matrix_pixels) / 4)):
-        h_D4bypart = matrix_pixels[4 * h_D4 : 4 + 4 * h_D4 :]
+        h_D4bypart = matrix_pixels[4 * h_D4 : 4 + 4 * h_D4]
         for i_ in range(len(h_D4bypart)):
             for j_ in h_D4bypart[i_]:
                 if j_[0] == 255 and j_[1] == 0:
@@ -93,136 +92,100 @@ def pixels_to_ascii(image):
                 else:
                     list_num_toDot.append([])
 
-    print("list_num_toDot", len(list_num_toDot))
+    # Reshape for width
     list_num_toDot = [
-        list_num_toDot[
-            round(image.width / 2) * i_ : round(image.width / 2)
-            + round(image.width / 2) * i_
-        ]
+        list_num_toDot[round(image.width / 2) * i_ : round(image.width / 2) + round(image.width / 2) * i_]
         for i_ in range(0, round(image.height))
     ]
-    print("list_num_toDot", len(list_num_toDot))
-    # ได้ชุดตัวเลขขนาด width*height
-    print("list_num_toDot_2", len(list_num_toDot))
+
+    # Flatten and group into 4-dot groups
     list_num_toDot_2 = []
-    """จัดเรียงครั้ง 2"""
     for h_D4 in range(round(len(list_num_toDot) / 4)):
-        list_dot4 = list_num_toDot[4 * h_D4 : 4 + 4 * h_D4 :]
+        list_dot4 = list_num_toDot[4 * h_D4 : 4 + 4 * h_D4]
         for w_D2 in range(round(image.width / 2)):
             for i_ in list_dot4:
-                #point_i = i_[w_D2]
                 list_num_toDot_2.append(i_[w_D2])
-    print("list_num_toDot_2", len(list_num_toDot_2))
-    """จัดเรียงครั้ง 3"""
+
+    # Group into 4-dot groups for Braille
     list_num_toDot_3 = []
     for list_point in range(round(len(list_num_toDot_2) / 4)):
-        list_By4 = list_num_toDot_2[4 * list_point : 4 + 4 * list_point :]
+        list_By4 = list_num_toDot_2[4 * list_point : 4 + 4 * list_point]
         list_plus = []
         for i in list_By4:
             list_plus.extend(i)
         list_num_toDot_3.append(list_plus)
 
-    def braille_from_dots(dot_list) :
-        base = 0x2800  # จุดเริ่มต้นของ Braille Patterns
-        value = 0
-        for dot in dot_list:
-            if 1 <= dot <= 8:
-                value |= 1 << (dot - 1)
-        return chr(base + value)
-
-
+    # Convert to Braille characters
     ascii_str = "".join(list(map(lambda x: braille_from_dots(x), list_num_toDot_3)))
     return ascii_str
 
-
-def pixels_to_ascii_dot(image):
-    pixels_image = list(image.getdata())
-
-    ascii_str_dots = "".join(
-        list(map(lambda dot_1: chr(10240 + dot_1), pixels_image))
-    )  # [::-1] ทําาให้กลับหัว
-    return ascii_str_dots
-
-
 def invert_RGBorRGBA(image_in):
-    # print(image_in.mode)
-    if image_in.mode == "RGBA" or image_in.mode == "P":
-        image_inRGB = image_in.convert("RGB")
-        return ImageOps.invert(image_inRGB)
+    """Optimized image inversion"""
+    if image_in.mode in ("RGBA", "P"):
+        return ImageOps.invert(image_in.convert("RGB"))
+    elif image_in.mode == "RGB":
+        return ImageOps.invert(image_in)
     else:
-        return ImageOps.invert(Image.merge("RGB", (image_in.split()[:3:])))
-
+        return ImageOps.invert(Image.merge("RGB", (image_in.split()[:3])))
 
 def main(
     image_path_in: str,
     output_width=100,
     invert_yn: str = "n",
-    image_path_OUT: str = "~/Downloads/ascii_image.txt",
-):  # Defuilt ไว้ 100 px
+    image_path_OUT: str = "ascii_image.txt",
+):
+    """Main function to convert image to ASCII art"""
     try:
-        # เปิดภาพ
         image_ = Image.open(image_path_in)
     except Exception as e:
-        print(f"{e}".split()[-1].center(110, "!") + "\n")
-        print("These file is not image".upper().center(110, "!"))
+        print(f"\n{'Error: Not a valid image file'.center(110, '!')}\n")
         Show_title()
         return
-    # print(image_)
-    # image_ = ImageOps.invert(image_.convert('RGB'))  # กลัยสีรูป
+
     if invert_yn.lower() == "y":
         image_ = invert_RGBorRGBA(image_)
-    # แปลงภาพ
+
     image_ = resize_image(image_, output_width)
-    image_ = image_.convert("L")  # เปลี่ยนภาพเป็นขาวดําา
+    image_ = image_.convert("L")
     image_ = stucki_dither(image_)
 
-    # แปลงเป็น ASCII
     ascii_str = pixels_to_ascii(image_)
-    # print(ascii_str)
-    # Loop จัดตัวอักขระ(แถว)เป็นรูป
+
     ascii_img = "\n".join(
-        list(
-            map(
-                lambda i_: ascii_str[i_ : (i_ + round((image_.width) / 2))],
-                list(range(0, len(ascii_str), round((image_.width) / 2))),
-            )
-        )
+        ascii_str[i_ : (i_ + (image_.width // 2))]
+        for i_ in range(0, len(ascii_str), (image_.width // 2))
     )
 
-    # แสดงผล
-    Text_re = "RESULT (ผลลัพธ์)\n"
+    Text_re = "RESULT (ASCII ART)\n"
     print("=" * output_width + "\n")
-    print(Text_re.center(output_width))  # ทําาให้ข้อความอยู่ตรงกลาง
+    print(Text_re.center(output_width))
     print("=" * output_width + "\n")
-    print((ascii_img))
+    print(ascii_img)
 
-    # บันทึกเป็นไฟล์ .txt (optional)
     with open(image_path_OUT, "w", encoding="utf-8") as f:
         f.write(ascii_img)
-    print(f"\n,/ Save ASCII art to a file: {image_path_OUT} SUCCESS")
-
+    print(f"\nSuccess: ASCII art saved to {image_path_OUT}")
 
 def Show_title():
+    """Display program title and usage information"""
     Head_text = (
-        "TKNL_ASCII_ART V.0.1.0",
+        "TKNL_ASCII_ART V.0.1.0 OPTIMIZED",
         "-->by Thanakrit Na-Lamphun [6804101333]",
     )
     HOW_text = (
-        ">>วิธีการใช้งาน: python <file_path>/TKNL_ASCII_ART0.0.1.py <path_to_image_Ascii> [width] [invert(y/n or yes/no)] <path_out_image>",
-        ">>ตัวอย่าง: python <file_path>/TKNL_ASCII_ART0.0.1.py Albert_Einstein.jpg 35 n Donwloads/ascii_text.txt",
-        ">>ต่าเริ่มต้น [width] เป้น 100 px ทุกตัวอักขระ(Ascii)เท่ากับ 1 px จากนั้นจะนําาไปทําาอัตราส่วน",
-        ">>ถ้าใส่ Input ไม่ถูกต้อง จะแสดงหน้านี้",
-        ">>ทุก <path_out_image> จะตามด้วย .txt เสมอ ถ้าไม่ใส่ต่ําาแหน่ง/ตํา่าแหน่งไม่ถูกต้อง โปรแกรมจะบันทึกที่ต่ําาแหน่ง Downloads/ascii_text.txt เสมอ",
+        ">>Usage: python TKNL_ASCII_ART0.0.1.py <path_to_image> [width] [invert(y/n)] <path_out.txt>",
+        ">>Example: python TKNL_ASCII_ART0.0.1.py Albert_Einstein.jpg 35 n Downloads/ascii_text.txt",
+        ">>Note: [width] defaults to 100 px if not specified or invalid",
+        ">>Note: Input must be a valid image file",
+        ">>Note: <path_out.txt> must end with .txt, defaults to ascii_image.txt",
     )
+
     print("=" * len(HOW_text[0]))
-    # print(len(HOW_text[0]))
-    print(
-        f"\n{' ' * int(0.5 * (len(HOW_text[0]) + 2 - len(Head_text[0])))}{Head_text[0]}"
-    )  # ช่อโปรเจค
+    print(f"\n{' ' * int(0.5 * (len(HOW_text[0]) + 2 - len(Head_text[0])))}{Head_text[0]}")
     print(f"""
-    {"╺┳╸╻┏ ┏┓╻╻     ┏━┓┏━┓┏━╸╻╻   ┏━┓┏━┓╺┳╸       ".center(len(HOW_text[0]))}
-    {"┃ ┣┻┓┃┗┫┃     ┣━┫┗━┓┃  ┃┃   ┣━┫┣┳┛ ┃       ".center(len(HOW_text[0]))}
-    {"╹ ╹ ╹╹ ╹┗━╸╺━╸╹ ╹┗━┛┗━╸╹╹╺━╸╹ ╹╹┗╸ ╹ v.0.0.1".center(len(HOW_text[0]))}
+    {"███████████     █████     █████████".center(len(HOW_text[0]))}
+    {"▒ ▓▓▓▓▓     ▓▓▓▓  ▓▓   ▓▓▓▓▓ ▓       ".center(len(HOW_text[0]))}
+    {"█ ██ ███ ███ ███ ███ ██ ███ ██ █ v.OPT".center(len(HOW_text[0]))}
     """)
 
     print(f"{' ' * int(0.5 * (len(HOW_text[0]) - len(Head_text[1])))}{Head_text[1]}\n")
@@ -235,62 +198,40 @@ def Show_title():
     print(HOW_text[4])
     print("""
 Example:
-⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢿⡿⣻⢻⡁⠀⢀⣄⣤⢴⠴⡴⣻⡻⣻⡻⣻⢭⢯⡻⣄⠦⠒⠉⠉⠉⡹⠀⢀⠈⠀⠄⠈⣿⢟⣿⡻⡿⣿
-⣿⣯⢿⡽⣯⢿⡽⣯⣷⡻⣮⢟⣞⢗⡵⡀⣜⢍⡢⡲⣡⢫⠺⣬⡻⣼⣝⢷⣫⣞⢽⣪⡻⡕⢶⡄⠀⡽⠀⠀⡀⠐⠀⠀⣿⣝⣮⡻⣺⣻
-⣿⡯⣿⡽⣯⣟⣿⣳⣽⣯⣻⡽⣝⣗⢕⠮⡪⣞⢽⣝⢷⣝⣽⢮⣻⢞⣮⣟⢮⡯⣳⠵⣝⢝⡵⣕⠀⢾⠀⠀⡀⠀⠐⠀⣿⢮⣞⣝⢷⣻
-⣿⣟⡷⣿⢯⣿⣞⡿⣾⢞⣷⢽⡷⣝⣎⡳⣹⢮⣳⣝⢷⣫⣾⣫⣯⡻⣮⢷⡻⣞⣵⢳⡱⣑⠎⢮⠀⣳⠀⢀⠀⠈⠀⠀⣿⣳⢽⡮⣿⣽
-⣿⣯⢿⣯⢿⡾⣽⢿⣽⢯⣟⣷⣻⣞⣜⢾⡵⣻⡵⣏⢿⡵⣳⢗⡷⣻⡺⣳⣝⢷⣝⢯⡷⣵⣫⢮⠀⣽⠀⠠⠀⠁⠈⠀⣿⣳⣟⢾⡵⣿
-⣿⣟⣯⣟⣿⣻⣟⣯⣿⡽⣗⣿⣺⢞⣮⢷⡻⣵⣫⢏⣷⣝⢷⡽⣝⣮⣻⢮⣞⡵⡝⢷⢝⡷⣻⣗⢀⡿⣀⡴⠤⠵⠢⠊⣿⡵⣯⣗⣟⣿
-⣿⣿⣽⣯⣿⡽⠯⠛⠚⠙⠋⠓⠙⠛⠚⠛⠳⠷⠯⠿⢮⡿⣝⣯⡿⣵⣯⣻⢮⡿⣽⢷⢷⣳⣵⣽⣥⣯⣄⣠⣀⣀⣀⠐⣿⡻⡾⣮⢯⣿
-⣿⣿⣾⡷⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠁⠉⠉⠉⠉⠉⠉⠋⠊⠑⠉⠈⠉⠉⠉⠁⠈⠀⠈⠉⠙⣷⣟⣿
-⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣶⢾⣟⢾⣿
-⣿⣿⣷⣿⣿⣶⣶⣦⣤⣤⣄⣄⣀⡀⠀⡢⠈⠐⡀⠑⠄⠱⡐⠅⡆⢔⠰⡀⠂⠀⡀⠀⡀⠈⡢⡃⠀⢰⡖⠐⠄⠂⠄⢐⣿⣯⢿⡽⣯⣿
-⣿⣿⣾⣯⣿⢿⣿⣿⣿⣿⣿⣿⣿⣇⠠⢪⠂⡠⠴⠤⠀⠀⡀⠀⣹⢮⢀⠄⠠⢀⠐⠰⢄⡈⣵⡫⢀⣼⡏⡜⣈⢊⠐⢠⣿⣽⢿⡽⣯⣿
-⣿⣿⣾⢷⣿⢿⣯⣿⣽⣯⣿⣽⣟⣿⡄⢱⢝⣤⡰⠢⢜⠣⡔⢆⢜⣷⡑⡮⣜⣱⡪⣷⢴⣝⣮⡃⢠⣿⣧⣮⣴⣤⢧⠴⣿⣯⣿⠙⣯⣿
-⣿⣿⣽⣟⣿⣻⣟⣷⣿⣻⣾⣯⣿⣻⣦⠘⡵⡳⣻⣟⣯⢷⣝⢧⡹⣯⡎⢿⢮⣽⣽⣯⢿⢾⣵⡅⠊⣿⡄⠀⠄⠄⠄⠰⣿⡾⣿⡁⣿⣿
-⣿⣿⣽⣯⣿⣻⣯⣿⣽⣟⣷⡿⣾⢿⣽⡧⢙⢎⢷⣽⢾⣟⢮⣗⢽⡾⣟⣽⣫⡿⣾⡷⣻⡳⣇⠀⠀⣿⡆⠀⠌⡐⠀⠨⣿⣻⣿⠄⣿⣿
-⣿⣿⢷⣿⣽⣿⣽⣯⣿⣽⣟⣿⣻⣟⣷⡟⣰⠡⡳⣝⢯⣪⡎⠛⠚⢟⠿⠊⣵⡝⣯⢟⣝⢞⡇⠀⠀⣿⡆⠈⠀⠀⠈⠐⣿⣯⣿⣻⣟⣿
-⣿⣿⢿⡷⣿⣾⣯⣿⢷⣿⣯⡿⣿⣽⣯⡗⢸⡫⣞⢜⡶⣻⢽⡳⣆⢀⢰⢞⡽⣻⣜⢯⣞⢯⠃⠀⠠⣿⡅⠀⢀⠈⠀⢈⣿⣷⣻⡷⣻⣿
-⣿⣿⣿⣻⣿⡾⣷⡿⣿⢷⣿⣻⡿⣾⣯⡯⠤⢏⡞⣯⢢⣤⣑⣑⣉⡙⢑⣯⣪⣤⣹⡳⣝⡇⢄⠁⠠⣿⡅⠐⠀⠄⠀⠠⣿⣯⣷⣟⡿⣿
-⣿⣿⣽⣟⣷⣿⣿⣻⣿⣻⣯⣿⣻⡿⣾⣗⢰⡔⠑⢭⣟⣽⣭⣍⠋⠛⡉⢙⣿⣿⣪⠗⣜⣿⠀⡓⣠⣿⣃⣠⣠⣠⣠⣠⣿⡾⣷⣽⣻⣿
-⣿⣿⣽⣯⣿⣾⣯⣿⣽⣿⣽⣯⡿⣿⣽⡧⠊⠀⠀⣮⢘⢗⠿⡾⡿⡿⡿⢷⠪⢿⣷⣝⢾⣿⠁⡢⢀⠛⠿⢟⣿⢯⣟⢷⣯⢿⣞⡷⣻⣾
-⣿⣿⢿⣾⣷⢿⣾⣟⣷⣿⢾⠯⡟⢛⡔⡑⠀⢠⢒⣿⣧⡳⢱⡈⠊⢈⢈⠢⠲⣢⣯⣻⣿⡯⢐⠄⡑⠌⡢⠠⡀⢉⠙⠹⠾⢯⣯⣟⣽⣿
-⣿⣿⣿⠷⠿⠛⡉⡉⠔⡀⠢⠢⡁⠧⠈⠔⢀⢯⣟⣽⡿⣿⣦⡌⡈⢂⢅⣱⣵⣿⣿⣽⡷⢁⠔⡡⢈⠢⡘⠢⠐⡈⠌⢂⠐⡀⢄⠈⡌⢙
-⡟⢉⠔⡠⠃⡐⡈⠠⢂⠌⠢⡁⡊⠄⠃⠄⣨⣿⣻⣞⡿⣿⣻⡿⢓⢴⣿⣿⣻⡿⣾⣯⠁⢢⢑⠠⠊⠔⡈⢈⠢⠀⡑⠀⡅⠐⠠⠑⠠⢃
-⡕⢡⢊⠐⠄⠢⡠⡁⠢⡐⠡⠄⣈⠐⡁⠠⣾⣯⣿⣽⣿⣽⡟⢨⡇⡣⢹⣿⣽⣿⣻⡇⠈⡢⢀⠡⠊⠐⠌⡀⠢⡁⡈⠠⠀⠌⡀⠡⠁⡌
-        """)
-
-    # เรียกใช้งาน
-
+█
+█████     █████     █████
+█████     ████  ██   █████ █
+    """)
 
 if __name__ == "__main__":
     try:
         if len(sys.argv) < 2:
-            # print(len(sys.argv))
             Show_title()
             sys.exit(1)
-        # จัด Sys.argv
+
         image_path_in = sys.argv[1]
-        width = (
-            int(sys.argv[2])
-            if len(sys.argv[2]) < 3 or 0 < int(sys.argv[2]) <= 10000
-            else 100
-        )
-        invert_YN = (
-            sys.argv[3][0]
-            if (
-                (sys.argv[3][0].lower() == "y" or sys.argv[3][0].lower() == "n")
-                and (sys.argv[3][-1].lower() == "y" and sys.argv[3][-1].lower() != "n")
-            )
-            or (sys.argv[3].lower() == "yes" or sys.argv[3].lower() == "no")
-            else "n"
-        )
-        image_path_out = (
-            sys.argv[4]
-            if sys.argv[4].split(".")[-1] == "txt"
-            and sys.argv[4].split("/")[0].isalnum()
-            else f"{sys.argv[1].split('/')[0]}/ascii_image.txt"
-        )
+
+        width = 100
+        if len(sys.argv) > 2:
+            try:
+                width_val = int(sys.argv[2])
+                if 0 < width_val <= 10000:
+                    width = width_val
+            except (ValueError, IndexError):
+                width = 100
+
+        invert_YN = "n"
+        if len(sys.argv) > 3:
+            invert_input = sys.argv[3].lower()
+            if invert_input in ("y", "yes"):
+                invert_YN = "y"
+            elif invert_input in ("n", "no"):
+                invert_YN = "n"
+
+        image_path_out = "ascii_image.txt"
+        if len(sys.argv) > 4:
+            if sys.argv[4].endswith(".txt"):
+                image_path_out = sys.argv[4]
 
         Text_list_show = (
             f"INPUT image path = {image_path_in}",
@@ -304,19 +245,9 @@ if __name__ == "__main__":
         print("\n" + f"{Text_list_show[3]}".center(width, ".") + "\n")
 
         main(image_path_in, width, invert_YN, image_path_out)
-    # except IndexError as Error:
-    # Show_title()
-    except Exception as E:
-        # print(f"Error: {type(E).__name__}, Message: {str(E)}")
-        # print("\n" + f"YOU HAVE PUT THE COMMAND INCORRECTLY.".center(129, "!") + "\n")
-        # print("\n" + f"Please Try Again.".center(129, "!") + "\n")
-        # print(f"{E}".center(129))
-        # Show_title()
-        print(E)
-    """
-    except ValueError as E:
-        print("\n" + f"YOU HAVE PUT THE COMMAND INCORRECTLY.".center(129, "!") + "\n")
-        print("\n" + f"Please Try Again.".center(129, "!") + "\n")
-        print(f"{E}".center(129))
-        Show_title()
-        """
+
+    except Exception as e:
+        print(f"\n{'Error: Invalid command'.center(129, '!')}\n")
+        print(f"{'Please check your input and try again.'.center(129, '!')}\n")
+        print(f"{str(e)}".center(129))
+        Show_title()       """
